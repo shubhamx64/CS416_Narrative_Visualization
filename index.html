@@ -224,7 +224,7 @@
     <div class="container">
         <header>
             <h1>The Rising Temperature: A Global Warming Story</h1>
-            <p class="subtitle">An Interactive Journey Through Climate Data (1880-2023)</p>
+            <p class="subtitle">An Interactive Journey Through Climate Data (1959-2023)</p>
         </header>
         
         <div class="scene-container">
@@ -254,8 +254,8 @@
         // Scene configurations
         const scenes = [
             {
-                title: "The Warming Trend: 140 Years of Temperature Change",
-                description: "Since 1880, global temperatures have shown a clear upward trend. This visualization shows the temperature anomaly - the difference from the 20th century average.",
+                title: "The Warming Trend: Temperature Change over the decades",
+                description: "Since 1959, global temperatures have shown a clear upward trend. This visualization shows the temperature anomaly - the difference from the 20th century average.",
                 type: "temperature",
                 interactive: false,
                 prompt: ""
@@ -450,11 +450,11 @@
             const annotations = [
                 {
                     note: {
-                        title: "Industrial Revolution Impact",
-                        label: "Early warming begins as industrialization spreads"
+                        title: "Early Warming Recorded",
+                        label: "Reliable global data begins"
                     },
-                    x: xScale(1900),
-                    y: yScale(data.find(d => d.year === 1900).temperature),
+                    x: xScale(1960),
+                    y: yScale(data.find(d => d.year === 1960).temperature),
                     dy: -50,
                     dx: 50
                 },
@@ -542,7 +542,7 @@
                     tooltip.html(`
                         <strong>${d.decade}s</strong><br>
                         Avg Temperature Anomaly: ${d.temp.toFixed(3)}°C<br>
-                        Change from previous: ${d.decade > 1880 ? 
+                        Change from previous: ${d.decade > 1959 ? 
                             ((d.temp - decades[decades.findIndex(dec => dec.decade === d.decade) - 1].temp) * 100).toFixed(1) + '%' : 
                             'N/A'}
                     `)
@@ -843,7 +843,7 @@
             
             // Scales
             const xScale = d3.scaleLinear()
-                .domain([1880, 2100])
+                .domain([1959, 2100])
                 .range([0, width]);
                 
             const yScale = d3.scaleLinear()
