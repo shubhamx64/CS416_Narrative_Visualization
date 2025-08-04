@@ -285,8 +285,8 @@
         
         // Initialize the visualization
         async function init() {
-            // Generate sample data (in a real implementation, load from CSV/JSON)
-            data = loadClimateData();
+            // Load data
+            data = await loadClimateData();
             
             // Create scene indicators
             const indicatorContainer = d3.select("#sceneIndicator");
