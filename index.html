@@ -1,19 +1,1078 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Global Warming Narrative</title>
-  <link rel="stylesheet" href="style.css" />
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <script src="https://unpkg.com/d3-svg-annotation@2.5.1/d3-annotation.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Warming: A Data-Driven Story</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/2.5.1/d3-annotation.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 40px 0;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin: 0 0 10px 0;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.2em;
+        }
+        
+        .scene-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .scene-title {
+            font-size: 1.8em;
+            color: #34495e;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .scene-description {
+            color: #7f8c8d;
+            text-align: center;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        #visualization {
+            width: 100%;
+            height: 500px;
+            position: relative;
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+        }
+        
+        .nav-button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .nav-button:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .scene-indicator {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .indicator-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #bdc3c7;
+            transition: background 0.3s ease;
+        }
+        
+        .indicator-dot.active {
+            background: #3498db;
+        }
+        
+        /* D3 Styles */
+        .axis {
+            font-size: 12px;
+        }
+        
+        .axis-label {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .line {
+            fill: none;
+            stroke-width: 3;
+        }
+        
+        .temperature-line {
+            stroke: #e74c3c;
+        }
+        
+        .co2-line {
+            stroke: #f39c12;
+        }
+        
+        .projection-line {
+            stroke: #9b59b6;
+            stroke-dasharray: 5, 5;
+        }
+        
+        .area {
+            fill-opacity: 0.3;
+        }
+        
+        .temperature-area {
+            fill: #e74c3c;
+        }
+        
+        .co2-area {
+            fill: #f39c12;
+        }
+        
+        .grid line {
+            stroke: #ecf0f1;
+            stroke-opacity: 0.7;
+        }
+        
+        .tooltip {
+            position: absolute;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border-radius: 5px;
+            pointer-events: none;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .legend {
+            font-size: 14px;
+        }
+        
+        .annotation-note-title {
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .annotation-note-label {
+            font-size: 12px;
+        }
+        
+        .interactive-prompt {
+            text-align: center;
+            color: #3498db;
+            font-style: italic;
+            margin-top: 10px;
+            opacity: 0;
+            animation: fadeIn 2s forwards;
+            animation-delay: 1s;
+        }
+        
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+        
+        .key-insight {
+            background: #ecf0f1;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: #7f8c8d;
+        }
+    </style>
 </head>
 <body>
-  <div id="visualization"></div>
-  <div id="controls">
-    <button id="prev">Previous</button>
-    <button id="next">Next</button>
-  </div>
-  <script src="script.js"></script>
+    <div class="container">
+        <header>
+            <h1>The Rising Temperature: A Global Warming Story</h1>
+            <p class="subtitle">An Interactive Journey Through Climate Data (1880-2023)</p>
+        </header>
+        
+        <div class="scene-container">
+            <h2 class="scene-title" id="sceneTitle">Loading...</h2>
+            <p class="scene-description" id="sceneDescription">Preparing visualization...</p>
+            <div id="visualization"></div>
+            <p class="interactive-prompt" id="interactivePrompt"></p>
+        </div>
+        
+        <div class="navigation">
+            <button class="nav-button" id="prevBtn" onclick="previousScene()" disabled>Previous</button>
+            <div class="scene-indicator" id="sceneIndicator"></div>
+            <button class="nav-button" id="nextBtn" onclick="nextScene()">Next</button>
+        </div>
+    </div>
+    
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        // Global variables for state management
+        let currentScene = 0;
+        let data = null;
+        const margin = {top: 50, right: 80, bottom: 70, left: 80};
+        const width = 1000 - margin.left - margin.right;
+        const height = 500 - margin.top - margin.bottom;
+        
+        // Scene configurations
+        const scenes = [
+            {
+                title: "The Warming Trend: 140 Years of Temperature Change",
+                description: "Since 1880, global temperatures have shown a clear upward trend. This visualization shows the temperature anomaly - the difference from the 20th century average.",
+                type: "temperature",
+                interactive: false,
+                prompt: ""
+            },
+            {
+                title: "Accelerating Change: Temperature Rise by Decade",
+                description: "Notice how the rate of warming has accelerated dramatically since the 1980s. Each decade shows progressively higher temperatures.",
+                type: "temperature-decades",
+                interactive: true,
+                prompt: "Hover over the chart to explore temperature changes by decade"
+            },
+            {
+                title: "The CO₂ Connection: Emissions and Temperature",
+                description: "The relationship between CO₂ emissions and temperature rise is clear. As emissions have increased, so have global temperatures.",
+                type: "co2-temperature",
+                interactive: true,
+                prompt: "Click on data points to see detailed information about specific years"
+            },
+            {
+                title: "Future Projections: Where Are We Heading?",
+                description: "Based on current trends, scientists project significant temperature increases by 2100. Different scenarios depend on our actions today.",
+                type: "projections",
+                interactive: true,
+                prompt: "Explore different emission scenarios by clicking the legend items"
+            }
+        ];
+        
+        // Initialize the visualization
+        async function init() {
+            // Generate sample data (in a real implementation, load from CSV/JSON)
+            data = loadClimateData();
+            
+            // Create scene indicators
+            const indicatorContainer = d3.select("#sceneIndicator");
+            scenes.forEach((_, i) => {
+                indicatorContainer.append("div")
+                    .attr("class", "indicator-dot")
+                    .classed("active", i === 0);
+            });
+            
+            // Load first scene
+            loadScene(0);
+        }
+        
+        // Load climate data
+        async function loadClimateData() {
+            const [tempData, co2Data] = await Promise.all([
+                d3.csv("data/temperature.csv", d => ({
+                    year: +d.year,
+                    temperature: +d.temperature
+                })),
+                d3.csv("data/co2.csv", d => ({
+                    year: +d.year,
+                    co2: +d.co2
+                }))
+            ]);
+            // Left join by year (some early years won't have CO2, that's fine)
+            let merged = tempData.map(d => {
+                let co2Row = co2Data.find(c => c.year === d.year);
+                return {
+                    year: d.year,
+                    temperature: d.temperature,
+                    co2: co2Row ? co2Row.co2 : null,
+                    decade: Math.floor(d.year / 10) * 10
+                };
+            });
+            // You may want to filter to years where both exist
+            return merged.filter(d => d.co2 !== null && !isNaN(d.temperature));
+        }
+        
+        // Load a specific scene
+        function loadScene(sceneIndex) {
+            currentScene = sceneIndex;
+            const scene = scenes[sceneIndex];
+            
+            // Update UI
+            document.getElementById("sceneTitle").textContent = scene.title;
+            document.getElementById("sceneDescription").textContent = scene.description;
+            document.getElementById("interactivePrompt").textContent = scene.prompt;
+            
+            // Update navigation
+            document.getElementById("prevBtn").disabled = sceneIndex === 0;
+            document.getElementById("nextBtn").disabled = sceneIndex === scenes.length - 1;
+            
+            // Update indicators
+            d3.selectAll(".indicator-dot")
+                .classed("active", (d, i) => i === sceneIndex);
+            
+            // Clear previous visualization
+            d3.select("#visualization").selectAll("*").remove();
+            
+            // Create new visualization based on scene type
+            switch(scene.type) {
+                case "temperature":
+                    createTemperatureChart();
+                    break;
+                case "temperature-decades":
+                    createDecadeChart();
+                    break;
+                case "co2-temperature":
+                    createCO2TemperatureChart();
+                    break;
+                case "projections":
+                    createProjectionChart();
+                    break;
+            }
+        }
+        
+        // Scene 1: Basic temperature trend
+        function createTemperatureChart() {
+            const svg = d3.select("#visualization")
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom);
+                
+            const g = svg.append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+            
+            // Scales
+            const xScale = d3.scaleLinear()
+                .domain(d3.extent(data, d => d.year))
+                .range([0, width]);
+                
+            const yScale = d3.scaleLinear()
+                .domain(d3.extent(data, d => d.temperature))
+                .range([height, 0]);
+            
+            // Grid
+            g.append("g")
+                .attr("class", "grid")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(xScale)
+                    .tickSize(-height)
+                    .tickFormat(""));
+                    
+            g.append("g")
+                .attr("class", "grid")
+                .call(d3.axisLeft(yScale)
+                    .tickSize(-width)
+                    .tickFormat(""));
+            
+            // Area
+            const area = d3.area()
+                .x(d => xScale(d.year))
+                .y0(height)
+                .y1(d => yScale(d.temperature))
+                .curve(d3.curveMonotoneX);
+                
+            g.append("path")
+                .datum(data)
+                .attr("class", "area temperature-area")
+                .attr("d", area);
+            
+            // Line
+            const line = d3.line()
+                .x(d => xScale(d.year))
+                .y(d => yScale(d.temperature))
+                .curve(d3.curveMonotoneX);
+                
+            g.append("path")
+                .datum(data)
+                .attr("class", "line temperature-line")
+                .attr("d", line);
+            
+            // Axes
+            g.append("g")
+                .attr("class", "axis")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(xScale).tickFormat(d3.format("d")));
+                
+            g.append("g")
+                .attr("class", "axis")
+                .call(d3.axisLeft(yScale));
+            
+            // Labels
+            g.append("text")
+                .attr("class", "axis-label")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 0 - margin.left + 20)
+                .attr("x", 0 - (height / 2))
+                .attr("text-anchor", "middle")
+                .text("Temperature Anomaly (°C)");
+                
+            g.append("text")
+                .attr("class", "axis-label")
+                .attr("x", width / 2)
+                .attr("y", height + margin.bottom - 10)
+                .attr("text-anchor", "middle")
+                .text("Year");
+            
+            // Annotations
+            const annotations = [
+                {
+                    note: {
+                        title: "Industrial Revolution Impact",
+                        label: "Early warming begins as industrialization spreads"
+                    },
+                    x: xScale(1900),
+                    y: yScale(data.find(d => d.year === 1900).temperature),
+                    dy: -50,
+                    dx: 50
+                },
+                {
+                    note: {
+                        title: "Accelerating Warming",
+                        label: "Rate of temperature increase doubles after 1980"
+                    },
+                    x: xScale(1980),
+                    y: yScale(data.find(d => d.year === 1980).temperature),
+                    dy: -80,
+                    dx: -50
+                },
+                {
+                    note: {
+                        title: "Recent Extremes",
+                        label: "Warmest years on record"
+                    },
+                    x: xScale(2020),
+                    y: yScale(data.find(d => d.year === 2020).temperature),
+                    dy: -60,
+                    dx: -100
+                }
+            ];
+            
+            const makeAnnotations = d3.annotation()
+                .annotations(annotations);
+                
+            g.append("g")
+                .call(makeAnnotations);
+        }
+        
+        // Scene 2: Temperature by decades with interaction
+        function createDecadeChart() {
+            const svg = d3.select("#visualization")
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom);
+                
+            const g = svg.append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+            
+            // Group data by decade
+            const decadeData = d3.rollup(
+                data,
+                v => d3.mean(v, d => d.temperature),
+                d => d.decade
+            );
+            
+            const decades = Array.from(decadeData, ([decade, temp]) => ({decade, temp}));
+            
+            // Scales
+            const xScale = d3.scaleBand()
+                .domain(decades.map(d => d.decade))
+                .range([0, width])
+                .padding(0.1);
+                
+            const yScale = d3.scaleLinear()
+                .domain([d3.min(decades, d => d.temp) - 0.2, d3.max(decades, d => d.temp) + 0.2])
+                .range([height, 0]);
+            
+            // Color scale
+            const colorScale = d3.scaleSequential()
+                .domain(d3.extent(decades, d => d.temp))
+                .interpolator(d3.interpolateRdYlBu)
+                .clamp(true);
+            
+            // Bars
+            g.selectAll(".bar")
+                .data(decades)
+                .enter().append("rect")
+                .attr("class", "bar")
+                .attr("x", d => xScale(d.decade))
+                .attr("y", d => yScale(d.temp))
+                .attr("width", xScale.bandwidth())
+                .attr("height", d => height - yScale(d.temp))
+                .attr("fill", d => colorScale(1 - d.temp))
+                .on("mouseover", function(event, d) {
+                    d3.select(this)
+                        .transition()
+                        .duration(200)
+                        .attr("opacity", 0.8);
+                    
+                    const tooltip = d3.select("#tooltip");
+                    tooltip.html(`
+                        <strong>${d.decade}s</strong><br>
+                        Avg Temperature Anomaly: ${d.temp.toFixed(3)}°C<br>
+                        Change from previous: ${d.decade > 1880 ? 
+                            ((d.temp - decades[decades.findIndex(dec => dec.decade === d.decade) - 1].temp) * 100).toFixed(1) + '%' : 
+                            'N/A'}
+                    `)
+                    .style("left", (event.pageX + 10) + "px")
+                    .style("top", (event.pageY - 28) + "px")
+                    .style("opacity", 1);
+                })
+                .on("mouseout", function() {
+                    d3.select(this)
+                        .transition()
+                        .duration(200)
+                        .attr("opacity", 1);
+                    
+                    d3.select("#tooltip").style("opacity", 0);
+                });
+            
+            // Axes
+            g.append("g")
+                .attr("class", "axis")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(xScale).tickFormat(d => d + "s"));
+                
+            g.append("g")
+                .attr("class", "axis")
+                .call(d3.axisLeft(yScale));
+            
+            // Labels
+            g.append("text")
+                .attr("class", "axis-label")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 0 - margin.left + 20)
+                .attr("x", 0 - (height / 2))
+                .attr("text-anchor", "middle")
+                .text("Average Temperature Anomaly (°C)");
+                
+            g.append("text")
+                .attr("class", "axis-label")
+                .attr("x", width / 2)
+                .attr("y", height + margin.bottom - 10)
+                .attr("text-anchor", "middle")
+                .text("Decade");
+            
+            // Trend line
+            const trendLine = d3.line()
+                .x(d => xScale(d.decade) + xScale.bandwidth() / 2)
+                .y(d => yScale(d.temp));
+                
+            g.append("path")
+                .datum(decades)
+                .attr("fill", "none")
+                .attr("stroke", "#e74c3c")
+                .attr("stroke-width", 2)
+                .attr("stroke-dasharray", "5,5")
+                .attr("d", trendLine);
+            
+            // Key annotation
+            const recentDecades = decades.slice(-3);
+            const annotations = [{
+                note: {
+                    title: "Unprecedented Acceleration",
+                    label: "The last three decades show the steepest temperature increase in recorded history"
+                },
+                x: xScale(recentDecades[1].decade) + xScale.bandwidth() / 2,
+                y: yScale(recentDecades[1].temp),
+                dy: -100,
+                dx: 0,
+                type: d3.annotationCalloutElbow
+            }];
+            
+            const makeAnnotations = d3.annotation()
+                .annotations(annotations);
+                
+            g.append("g")
+                .call(makeAnnotations);
+        }
+        
+        // Scene 3: CO2 and Temperature correlation
+        function createCO2TemperatureChart() {
+            const svg = d3.select("#visualization")
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom);
+                
+            const g = svg.append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+            
+            // Scales
+            const xScale = d3.scaleLinear()
+                .domain(d3.extent(data, d => d.co2))
+                .range([0, width]);
+                
+            const yScale = d3.scaleLinear()
+                .domain(d3.extent(data, d => d.temperature))
+                .range([height, 0]);
+            
+            const colorScale = d3.scaleSequential()
+                .domain(d3.extent(data, d => d.year))
+                .interpolator(d3.interpolateViridis);
+            
+            // Grid
+            g.append("g")
+                .attr("class", "grid")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(xScale)
+                    .tickSize(-height)
+                    .tickFormat(""));
+                    
+            g.append("g")
+                .attr("class", "grid")
+                .call(d3.axisLeft(yScale)
+                    .tickSize(-width)
+                    .tickFormat(""));
+            
+            // Scatter plot
+            g.selectAll(".dot")
+                .data(data)
+                .enter().append("circle")
+                .attr("class", "dot")
+                .attr("cx", d => xScale(d.co2))
+                .attr("cy", d => yScale(d.temperature))
+                .attr("r", 3)
+                .attr("fill", d => colorScale(d.year))
+                .attr("opacity", 0.7)
+                .on("click", function(event, d) {
+                    // Clear previous highlight
+                    g.selectAll(".dot").attr("r", 3).attr("opacity", 0.7);
+                    
+                    // Highlight selected
+                    d3.select(this)
+                        .attr("r", 8)
+                        .attr("opacity", 1);
+                    
+                    // Show detailed info
+                    const annotation = [{
+                        note: {
+                            title: `Year ${d.year}`,
+                            label: `CO₂: ${d.co2.toFixed(1)} ppm\nTemp Anomaly: ${d.temperature.toFixed(3)}°C`
+                        },
+                        x: xScale(d.co2),
+                        y: yScale(d.temperature),
+                        dy: -50,
+                        dx: 50
+                    }];
+                    
+                    g.selectAll(".dynamic-annotation").remove();
+                    
+                    const makeAnnotations = d3.annotation()
+                        .annotations(annotation);
+                        
+                    g.append("g")
+                        .attr("class", "dynamic-annotation")
+                        .call(makeAnnotations);
+                });
+            
+            // Regression line
+            const regression = calculateRegression(data.map(d => [d.co2, d.temperature]));
+            const regressionLine = d3.line()
+                .x(d => xScale(d[0]))
+                .y(d => yScale(regression.predict(d[0])));
+                
+            const regressionData = [
+                [d3.min(data, d => d.co2), 0],
+                [d3.max(data, d => d.co2), 0]
+            ];
+            
+            g.append("path")
+                .datum(regressionData)
+                .attr("fill", "none")
+                .attr("stroke", "#e74c3c")
+                .attr("stroke-width", 2)
+                .attr("stroke-dasharray", "5,5")
+                .attr("d", regressionLine);
+            
+            // Axes
+            g.append("g")
+                .attr("class", "axis")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(xScale));
+                
+            g.append("g")
+                .attr("class", "axis")
+                .call(d3.axisLeft(yScale));
+            
+            // Labels
+            g.append("text")
+                .attr("class", "axis-label")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 0 - margin.left + 20)
+                .attr("x", 0 - (height / 2))
+                .attr("text-anchor", "middle")
+                .text("Temperature Anomaly (°C)");
+                
+            g.append("text")
+                .attr("class", "axis-label")
+                .attr("x", width / 2)
+                .attr("y", height + margin.bottom - 10)
+                .attr("text-anchor", "middle")
+                .text("CO₂ Concentration (ppm)");
+            
+            // Color legend
+            const legendWidth = 200;
+            const legendHeight = 10;
+            
+            const legendScale = d3.scaleLinear()
+                .domain(d3.extent(data, d => d.year))
+                .range([0, legendWidth]);
+            
+            const legend = g.append("g")
+                .attr("transform", `translate(${width - legendWidth - 20}, 20)`);
+            
+            // Create gradient
+            const gradientId = "gradient-co2";
+            const gradient = svg.append("defs")
+                .append("linearGradient")
+                .attr("id", gradientId);
+                
+            const steps = 10;
+            for (let i = 0; i <= steps; i++) {
+                gradient.append("stop")
+                    .attr("offset", `${i * 100 / steps}%`)
+                    .attr("stop-color", colorScale(legendScale.invert(i * legendWidth / steps)));
+            }
+            
+            legend.append("rect")
+                .attr("width", legendWidth)
+                .attr("height", legendHeight)
+                .style("fill", `url(#${gradientId})`);
+            
+            legend.append("text")
+                .attr("y", -5)
+                .text("Year");
+            
+            legend.append("text")
+                .attr("y", legendHeight + 15)
+                .text(d3.min(data, d => d.year));
+                
+            legend.append("text")
+                .attr("x", legendWidth)
+                .attr("y", legendHeight + 15)
+                .attr("text-anchor", "end")
+                .text(d3.max(data, d => d.year));
+            
+            // Static annotation
+            const annotations = [{
+                note: {
+                    title: "Strong Correlation",
+                    label: `R² = ${regression.r2.toFixed(3)}\nThe relationship between CO₂ and temperature is clear`
+                },
+                x: width - 200,
+                y: 100,
+                dy: 0,
+                dx: 0,
+                type: d3.annotationLabel
+            }];
+            
+            const makeAnnotations = d3.annotation()
+                .annotations(annotations);
+                
+            g.append("g")
+                .call(makeAnnotations);
+        }
+        
+        // Scene 4: Future projections
+        function createProjectionChart() {
+            const svg = d3.select("#visualization")
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom);
+                
+            const g = svg.append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+            
+            // Generate projection data
+            const lastYear = 2023;
+            const projectionYears = [];
+            for (let year = lastYear + 1; year <= 2100; year++) {
+                projectionYears.push(year);
+            }
+            
+            // Different scenarios
+            const scenarios = {
+                "Current Path": projectionYears.map(year => ({
+                    year,
+                    temperature: data[data.length - 1].temperature + (year - lastYear) * 0.035
+                })),
+                "Aggressive Action": projectionYears.map(year => ({
+                    year,
+                    temperature: data[data.length - 1].temperature + (year - lastYear) * 0.015
+                })),
+                "Best Case": projectionYears.map(year => ({
+                    year,
+                    temperature: data[data.length - 1].temperature + (year - lastYear) * 0.005
+                }))
+            };
+            
+            // Combine historical and projection data
+            const allData = [...data, ...Object.values(scenarios).flat()];
+            
+            // Scales
+            const xScale = d3.scaleLinear()
+                .domain([1880, 2100])
+                .range([0, width]);
+                
+            const yScale = d3.scaleLinear()
+                .domain([d3.min(allData, d => d.temperature) - 0.5, d3.max(allData, d => d.temperature) + 0.5])
+                .range([height, 0]);
+            
+            // Grid
+            g.append("g")
+                .attr("class", "grid")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(xScale)
+                    .tickSize(-height)
+                    .tickFormat(""));
+                    
+            g.append("g")
+                .attr("class", "grid")
+                .call(d3.axisLeft(yScale)
+                    .tickSize(-width)
+                    .tickFormat(""));
+            
+            // Historical line
+            const line = d3.line()
+                .x(d => xScale(d.year))
+                .y(d => yScale(d.temperature))
+                .curve(d3.curveMonotoneX);
+                
+            g.append("path")
+                .datum(data)
+                .attr("class", "line temperature-line")
+                .attr("d", line);
+            
+            // Projection lines
+            const colors = {
+                "Current Path": "#e74c3c",
+                "Aggressive Action": "#f39c12",
+                "Best Case": "#27ae60"
+            };
+            
+            Object.entries(scenarios).forEach(([name, projData]) => {
+                const fullData = [data[data.length - 1], ...projData];
+                
+                const group = g.append("g")
+                    .attr("class", "scenario-group")
+                    .attr("data-scenario", name);
+                
+                group.append("path")
+                    .datum(fullData)
+                    .attr("class", "line projection-line")
+                    .attr("stroke", colors[name])
+                    .attr("d", line)
+                    .attr("opacity", 1);
+                    
+                // Add area under projection
+                const area = d3.area()
+                    .x(d => xScale(d.year))
+                    .y0(height)
+                    .y1(d => yScale(d.temperature))
+                    .curve(d3.curveMonotoneX);
+                    
+                group.append("path")
+                    .datum(fullData)
+                    .attr("class", "area")
+                    .attr("fill", colors[name])
+                    .attr("fill-opacity", 0.1)
+                    .attr("d", area);
+            });
+            
+            // Axes
+            g.append("g")
+                .attr("class", "axis")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(xScale).tickFormat(d3.format("d")));
+                
+            g.append("g")
+                .attr("class", "axis")
+                .call(d3.axisLeft(yScale));
+            
+            // Labels
+            g.append("text")
+                .attr("class", "axis-label")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 0 - margin.left + 20)
+                .attr("x", 0 - (height / 2))
+                .attr("text-anchor", "middle")
+                .text("Temperature Anomaly (°C)");
+                
+            g.append("text")
+                .attr("class", "axis-label")
+                .attr("x", width / 2)
+                .attr("y", height + margin.bottom - 10)
+                .attr("text-anchor", "middle")
+                .text("Year");
+            
+            // Vertical line at present
+            g.append("line")
+                .attr("x1", xScale(lastYear))
+                .attr("x2", xScale(lastYear))
+                .attr("y1", 0)
+                .attr("y2", height)
+                .attr("stroke", "#95a5a6")
+                .attr("stroke-dasharray", "3,3");
+                
+            g.append("text")
+                .attr("x", xScale(lastYear))
+                .attr("y", -10)
+                .attr("text-anchor", "middle")
+                .attr("fill", "#95a5a6")
+                .text("Present");
+            
+            // Interactive legend
+            const legend = g.append("g")
+                .attr("class", "legend")
+                .attr("transform", `translate(${width - 200}, 20)`);
+                
+            Object.entries(colors).forEach(([name, color], i) => {
+                const legendItem = legend.append("g")
+                    .attr("transform", `translate(0, ${i * 25})`)
+                    .style("cursor", "pointer")
+                    .on("click", function() {
+                        const scenario = d3.select(`.scenario-group[data-scenario="${name}"]`);
+                        const isHidden = scenario.attr("opacity") === "0.2";
+                        
+                        if (isHidden) {
+                            scenario.transition().duration(300).attr("opacity", 1);
+                            d3.select(this).select("rect").attr("opacity", 1);
+                            d3.select(this).select("text").attr("opacity", 1);
+                        } else {
+                            scenario.transition().duration(300).attr("opacity", 0.2);
+                            d3.select(this).select("rect").attr("opacity", 0.3);
+                            d3.select(this).select("text").attr("opacity", 0.3);
+                        }
+                    });
+                    
+                legendItem.append("rect")
+                    .attr("width", 20)
+                    .attr("height", 3)
+                    .attr("fill", color);
+                    
+                legendItem.append("text")
+                    .attr("x", 25)
+                    .attr("y", 3)
+                    .attr("alignment-baseline", "middle")
+                    .text(name);
+            });
+            
+            // Annotations
+            const annotations = [
+                {
+                    note: {
+                        title: "Critical Decision Point",
+                        label: "Our actions in the next decade will determine which path we follow"
+                    },
+                    x: xScale(2035),
+                    y: yScale(scenarios["Aggressive Action"][12].temperature),
+                    dy: -50,
+                    dx: 50
+                },
+                {
+                    note: {
+                        title: "Potential 4°C Rise",
+                        label: "Current path leads to catastrophic warming"
+                    },
+                    x: xScale(2100),
+                    y: yScale(scenarios["Current Path"][scenarios["Current Path"].length - 1].temperature),
+                    dy: -30,
+                    dx: -100
+                }
+            ];
+            
+            const makeAnnotations = d3.annotation()
+                .annotations(annotations);
+                
+            g.append("g")
+                .call(makeAnnotations);
+            
+            // Add key insight box
+            d3.select(".scene-container")
+                .append("div")
+                .attr("class", "key-insight")
+                .html("<strong>Key Insight:</strong> The difference between scenarios represents millions of lives and trillions in economic impact. Every fraction of a degree matters.");
+        }
+        
+        // Simple linear regression
+        function calculateRegression(data) {
+            const n = data.length;
+            let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0, sumY2 = 0;
+            
+            data.forEach(([x, y]) => {
+                sumX += x;
+                sumY += y;
+                sumXY += x * y;
+                sumX2 += x * x;
+                sumY2 += y * y;
+            });
+            
+            const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            const intercept = (sumY - slope * sumX) / n;
+            const r2 = Math.pow((n * sumXY - sumX * sumY) / 
+                Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY)), 2);
+            
+            return {
+                slope,
+                intercept,
+                r2,
+                predict: (x) => slope * x + intercept
+            };
+        }
+        
+        // Navigation functions
+        function nextScene() {
+            if (currentScene < scenes.length - 1) {
+                loadScene(currentScene + 1);
+            }
+        }
+        
+        function previousScene() {
+            if (currentScene > 0) {
+                loadScene(currentScene - 1);
+            }
+        }
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextScene();
+            if (e.key === 'ArrowLeft') previousScene();
+        });
+        
+        // Initialize on load
+        window.addEventListener('load', init);
+    </script>
 </body>
 </html>
