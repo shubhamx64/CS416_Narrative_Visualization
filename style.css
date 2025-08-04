@@ -17,3 +17,20 @@ button {
   margin: 10px;
   font-size: 14px;
 }
+
+svg {
+  background-color: #fff;
+  border: 1px solid #ddd;
+}
+.title {
+  font-size: 20px;
+  font-weight: bold;
+  fill: #333;
+}
+.subtitle {
+  font-size: 14px;
+  fill: #666;
+}
+axis text, axis path, axis line {
+  font-size: 12px;
+}
